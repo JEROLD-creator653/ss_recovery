@@ -7,20 +7,20 @@ export default function Loading() {
       justifyContent: 'center',
       alignItems: 'center',
       height: '100vh',
-      backgroundColor: '#080710',
-      color: '#ffffff',
+      background: 'linear-gradient(135deg, #F8F7FC 0%, #EDE9FE 50%, #F5F3FF 100%)',
+      color: '#1E1B4B',
       fontFamily: 'Poppins, sans-serif',
-      fontSize: '24px',
+      fontSize: '20px',
       flexDirection: 'column',
       gap: '20px',
     }}>
       <div style={{
-        width: '50px',
-        height: '50px',
-        border: '5px solid rgba(255, 255, 255, 0.3)',
-        borderTop: '5px solid #ffffff',
+        width: '44px',
+        height: '44px',
+        border: '4px solid #DDD6FE',
+        borderTop: '4px solid #7C5CFC',
         borderRadius: '50%',
-        animation: 'spin 1s linear infinite',
+        animation: 'spin 0.8s linear infinite',
       }} />
       <style jsx>{`
         @keyframes spin {
@@ -28,7 +28,7 @@ export default function Loading() {
           100% { transform: rotate(360deg); }
         }
       `}</style>
-      <p>Loading...</p>
+      <p style={{ color: '#6B7280', fontWeight: 500 }}>Loading...</p>
     </div>
   );
 }

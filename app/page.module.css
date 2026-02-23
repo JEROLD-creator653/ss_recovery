@@ -1,110 +1,129 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
 :global(body) {
-    background-color: #080710;
+    background: linear-gradient(135deg, #F8F7FC 0%, #EDE9FE 50%, #F5F3FF 100%);
+    min-height: 100vh;
 }
 
 .background {
-    width: 430px;
-    height: 520px;
-    position: absolute;
-    transform: translate(-50%, -50%);
-    left: 50%;
-    top: 50%;
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
 }
 
 .background .shape {
-    height: 200px;
-    width: 200px;
     position: absolute;
     border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.4;
+    z-index: 0;
 }
 
 .shape:first-child {
-    background: linear-gradient(#1845ad, #23a2f6);
-    left: -80px;
+    background: linear-gradient(135deg, #A78BFA, #C4B5FD);
+    width: 300px;
+    height: 300px;
     top: -80px;
+    left: -60px;
 }
 
 .shape:last-child {
-    background: linear-gradient(to right, #ff512f, #f09819);
-    right: -30px;
-    bottom: -80px;
+    background: linear-gradient(135deg, #DDD6FE, #8B5CF6);
+    width: 250px;
+    height: 250px;
+    bottom: -60px;
+    right: -40px;
 }
 
 :global(form) {
-    height: 520px;
-    width: 400px;
-    background-color: rgba(255, 255, 255, 0.13);
-    position: absolute;
-    transform: translate(-50%, -50%);
-    top: 50%;
-    left: 50%;
-    border-radius: 10px;
-    backdrop-filter: blur(10px);
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 0 40px rgba(8, 7, 16, 0.6);
-    padding: 50px 35px;
+    width: 420px;
+    background: #ffffff;
+    position: relative;
+    z-index: 1;
+    border-radius: 16px;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 4px 24px rgba(124, 92, 252, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
+    padding: 48px 40px;
 }
 
 :global(form *) {
     font-family: 'Poppins', sans-serif;
-    color: #ffffff;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
     outline: none;
     border: none;
 }
 
 :global(form h3) {
-    font-size: 32px;
-    font-weight: 500;
-    line-height: 42px;
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 36px;
     text-align: center;
+    color: #1E1B4B;
+    margin-bottom: 8px;
 }
 
 :global(label) {
     display: block;
-    margin-top: 30px;
-    font-size: 16px;
+    margin-top: 24px;
+    font-size: 14px;
     font-weight: 500;
+    color: #4C1D95;
 }
 
 :global(input) {
     display: block;
-    height: 50px;
+    height: 48px;
     width: 100%;
-    background-color: rgba(255, 255, 255, 0.07);
-    border-radius: 3px;
-    padding: 0 10px;
+    background-color: #F8F7FC;
+    border: 1px solid #DDD6FE;
+    border-radius: 10px;
+    padding: 0 14px;
     margin-top: 8px;
     font-size: 14px;
-    font-weight: 300;
+    font-weight: 400;
+    color: #1E1B4B;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+:global(input:focus) {
+    border-color: #7C5CFC;
+    box-shadow: 0 0 0 3px rgba(124, 92, 252, 0.12);
 }
 
 :global(::placeholder) {
-    color: #e5e5e5;
+    color: #9CA3AF;
 }
 
 :global(button) {
-    margin-top: 50px;
+    margin-top: 24px;
     width: 100%;
-    background-color: #ffffff;
-    color: #080710;
-    padding: 15px 0;
-    font-size: 18px;
+    background: linear-gradient(135deg, #7C5CFC, #8B5CF6);
+    color: #ffffff;
+    padding: 14px 0;
+    font-size: 16px;
     font-weight: 600;
-    border-radius: 5px;
+    border-radius: 10px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: all 0.25s ease;
+    border: none;
+    box-shadow: 0 2px 8px rgba(124, 92, 252, 0.25);
 }
 
 :global(button:hover) {
-    background-color: rgba(255, 255, 255, 0.9);
+    background: linear-gradient(135deg, #6D4AE6, #7C3AED);
+    box-shadow: 0 4px 16px rgba(124, 92, 252, 0.35);
+    transform: translateY(-1px);
 }
 
 :global(button:disabled) {
     opacity: 0.6;
     cursor: not-allowed;
+    transform: none;
 }
 
 .social {
@@ -113,17 +132,16 @@
 }
 
 .social div {
-    background: red;
     width: 150px;
-    border-radius: 3px;
+    border-radius: 8px;
     padding: 5px 10px 10px;
-    background-color: rgba(255, 255, 255, 0.27);
-    color: #eaf0fb;
+    background-color: #EDE9FE;
+    color: #4C1D95;
     text-align: center;
 }
 
 .social div:hover {
-    background-color: rgba(255, 255, 255, 0.47);
+    background-color: #DDD6FE;
 }
 
 .social .fb {

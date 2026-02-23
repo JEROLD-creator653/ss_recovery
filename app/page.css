@@ -1,163 +1,191 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
 body {
-    background-color: #080710;
+    background: linear-gradient(135deg, #F8F7FC 0%, #EDE9FE 50%, #F5F3FF 100%) !important;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
 }
 
 .background {
-    width: 430px;
-    height: 520px;
+    width: 100vw;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    padding: 40px 20px;
+}
+
+/* Decorative blurred shapes */
+.background > div:first-child {
     position: absolute;
-    transform: translate(-50%, -50%);
-    left: 50%;
-    top: 50%;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 0;
 }
 
 .background .shape {
-    height: 200px;
-    width: 200px;
     position: absolute;
     border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.45;
 }
 
 .shape:first-child {
-    background: linear-gradient(#1845ad, #23a2f6);
-    left: -80px;
+    background: linear-gradient(135deg, #A78BFA, #C4B5FD);
+    width: 300px;
+    height: 300px;
     top: -80px;
+    left: -60px;
 }
 
 .shape:last-child {
-    background: linear-gradient(to right, #ff512f, #f09819);
-    right: -30px;
-    bottom: -80px;
+    background: linear-gradient(135deg, #DDD6FE, #8B5CF6);
+    width: 250px;
+    height: 250px;
+    bottom: -60px;
+    right: -40px;
 }
 
 form {
-    height: 520px;
-    width: 400px;
-    background-color: rgba(255, 255, 255, 0.13);
-    position: absolute;
-    transform: translate(-50%, -50%);
-    top: 50%;
-    left: 50%;
-    border-radius: 10px;
-    backdrop-filter: blur(10px);
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 0 40px rgba(8, 7, 16, 0.6);
-    padding: 50px 35px;
-}
-
-form * {
-    font-family: 'Poppins', sans-serif;
-    color: #ffffff;
-    letter-spacing: 0.5px;
-    outline: none;
-    border: none;
+    width: 420px;
+    max-width: 95vw;
+    background: #ffffff !important;
+    position: relative;
+    z-index: 1;
+    border-radius: 16px;
+    border: 1px solid #E5E7EB !important;
+    box-shadow: 0 4px 24px rgba(124, 92, 252, 0.1), 0 1px 4px rgba(0, 0, 0, 0.05);
+    padding: 48px 40px;
 }
 
 form h3 {
-    font-size: 32px;
-    font-weight: 500;
-    line-height: 42px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 36px;
     text-align: center;
+    color: #1E1B4B;
+    margin: 0 0 8px 0;
+    letter-spacing: 0.3px;
 }
 
 label {
     display: block;
-    margin-top: 30px;
-    font-size: 16px;
+    margin-top: 24px;
+    font-size: 14px;
     font-weight: 500;
+    color: #4C1D95;
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: 0.3px;
 }
 
 input {
     display: block;
-    height: 50px;
+    height: 48px;
     width: 100%;
-    background-color: rgba(255, 255, 255, 0.07);
-    border-radius: 3px;
-    padding: 0 10px;
+    background-color: #F8F7FC !important;
+    border: 1.5px solid #DDD6FE !important;
+    border-radius: 10px;
+    padding: 0 14px;
     margin-top: 8px;
     font-size: 14px;
-    font-weight: 300;
+    font-weight: 400;
+    color: #1E1B4B;
+    font-family: 'Poppins', sans-serif;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
 }
 
-::placeholder {
-    color: #e5e5e5;
+input:focus {
+    border-color: #7C5CFC !important;
+    box-shadow: 0 0 0 3px rgba(124, 92, 252, 0.15);
+}
+
+input::placeholder {
+    color: #9CA3AF;
 }
 
 button {
-    margin-top: 50px;
+    margin-top: 20px;
     width: 100%;
-    background-color: #ffffff;
-    color: #080710;
-    padding: 15px 0;
-    font-size: 18px;
+    background: linear-gradient(135deg, #7C5CFC, #8B5CF6) !important;
+    color: #ffffff !important;
+    padding: 14px 0;
+    font-size: 16px;
     font-weight: 600;
-    border-radius: 5px;
+    border-radius: 10px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: all 0.25s ease;
+    border: none !important;
+    box-shadow: 0 2px 8px rgba(124, 92, 252, 0.3);
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: 0.3px;
 }
 
 button:hover {
-    background-color: rgba(255, 255, 255, 0.9);
+    background: linear-gradient(135deg, #6D4AE6, #7C3AED) !important;
+    box-shadow: 0 4px 16px rgba(124, 92, 252, 0.4);
+    transform: translateY(-1px);
+}
+
+button:active {
+    transform: translateY(0);
 }
 
 button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
-}
-
-.social {
-    margin-top: 30px;
-    display: flex;
-}
-
-.social div {
-    background: red;
-    width: 150px;
-    border-radius: 3px;
-    padding: 5px 10px 10px;
-    background-color: rgba(255, 255, 255, 0.27);
-    color: #eaf0fb;
-    text-align: center;
-}
-
-.social div:hover {
-    background-color: rgba(255, 255, 255, 0.47);
-}
-
-.social .fb {
-    margin-left: 25px;
-}
-
-.social i {
-    margin-right: 4px;
+    transform: none;
 }
 
 /* ─── Footer ─── */
 .site-footer {
-  margin-top: 40px;
-  padding: 20px 0 10px;
-  text-align: center;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+    position: relative;
+    z-index: 1;
+    margin-top: 32px;
+    padding: 20px 0 10px;
+    text-align: center;
 }
 
 .footer-tagline {
-  font-size: 12px;
-  font-style: italic;
-  color: rgba(255, 255, 255, 0.35);
-  margin: 0 0 6px;
-  letter-spacing: 0.3px;
+    font-size: 12px;
+    font-style: italic;
+    color: rgba(75, 29, 148, 0.35);
+    margin: 0 0 6px;
+    letter-spacing: 0.3px;
+    font-family: 'Poppins', sans-serif;
 }
 
 .footer-credit {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.25);
-  margin: 0;
-  letter-spacing: 0.2px;
+    font-size: 11px;
+    color: rgba(75, 29, 148, 0.25);
+    margin: 0;
+    letter-spacing: 0.2px;
+    font-family: 'Poppins', sans-serif;
 }
 
 .footer-credit strong {
-  color: rgba(255, 255, 255, 0.45);
-  font-weight: 600;
+    color: rgba(75, 29, 148, 0.45);
+    font-weight: 600;
+}
+
+/* ─── Spin animation for loading ─── */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 480px) {
+    form {
+        padding: 36px 24px;
+    }
 }

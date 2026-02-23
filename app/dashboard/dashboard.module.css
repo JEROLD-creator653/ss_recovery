@@ -1,6 +1,6 @@
 .dashboard-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #F8F7FC 0%, #EDE9FE 40%, #F5F3FF 100%);
   padding: 20px;
   font-family: 'Poppins', sans-serif;
 }
@@ -9,25 +9,25 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
+  background: #ffffff;
   padding: 20px 30px;
   border-radius: 15px;
   margin-bottom: 30px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 1px 4px rgba(124, 92, 252, 0.06);
 }
 
 .dashboard-header h1 {
-  color: white;
+  color: #1E1B4B;
   font-size: 28px;
   font-weight: 600;
   margin: 0;
 }
 
 .logout-btn {
-  background: rgba(255, 255, 255, 0.9);
-  color: #667eea;
-  border: none;
+  background: #F8F7FC;
+  color: #7C5CFC;
+  border: 1px solid #DDD6FE;
   padding: 12px 30px;
   border-radius: 8px;
   font-size: 16px;
@@ -37,9 +37,9 @@
 }
 
 .logout-btn:hover {
-  background: white;
+  background: #EDE9FE;
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 5px 15px rgba(124, 92, 252, 0.12);
 }
 
 .dashboard-content {
@@ -48,23 +48,23 @@
 }
 
 .welcome-card {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
+  background: #ffffff;
   padding: 40px;
   border-radius: 15px;
   text-align: center;
   margin-bottom: 30px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 1px 4px rgba(124, 92, 252, 0.06);
 }
 
 .welcome-card h2 {
-  color: white;
+  color: #1E1B4B;
   font-size: 32px;
   margin-bottom: 10px;
 }
 
 .welcome-card p {
-  color: rgba(255, 255, 255, 0.9);
+  color: #6B7280;
   font-size: 18px;
 }
 
@@ -76,36 +76,36 @@
 }
 
 .feature-card {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
+  background: #ffffff;
   padding: 30px;
   border-radius: 15px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid #E5E7EB;
   transition: all 0.3s ease;
+  box-shadow: 0 1px 4px rgba(124, 92, 252, 0.05);
 }
 
 .feature-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 10px 30px rgba(124, 92, 252, 0.12);
+  border-color: #DDD6FE;
 }
 
 .feature-card h3 {
-  color: white;
+  color: #1E1B4B;
   font-size: 24px;
   margin-bottom: 15px;
 }
 
 .feature-card p {
-  color: rgba(255, 255, 255, 0.8);
+  color: #6B7280;
   font-size: 14px;
   margin-bottom: 20px;
   line-height: 1.6;
 }
 
 .feature-btn {
-  background: white;
-  color: #667eea;
+  background: linear-gradient(135deg, #7C5CFC, #8B5CF6);
+  color: #ffffff;
   border: none;
   padding: 12px 24px;
   border-radius: 8px;
@@ -114,23 +114,24 @@
   cursor: pointer;
   transition: all 0.3s ease;
   width: 100%;
+  box-shadow: 0 2px 8px rgba(124, 92, 252, 0.25);
 }
 
 .feature-btn:hover {
-  background: rgba(255, 255, 255, 0.9);
-  transform: scale(1.05);
+  background: linear-gradient(135deg, #6D4AE6, #7C3AED);
+  transform: scale(1.02);
 }
 
 .info-section {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
+  background: #ffffff;
   padding: 30px;
   border-radius: 15px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 1px 4px rgba(124, 92, 252, 0.05);
 }
 
 .info-section h3 {
-  color: white;
+  color: #1E1B4B;
   font-size: 24px;
   margin-bottom: 20px;
 }
@@ -141,10 +142,10 @@
 }
 
 .info-section li {
-  color: rgba(255, 255, 255, 0.9);
+  color: #374151;
   font-size: 16px;
   padding: 12px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid #F3F4F6;
   padding-left: 25px;
   position: relative;
 }
@@ -153,7 +154,7 @@
   content: '✓';
   position: absolute;
   left: 0;
-  color: #4ade80;
+  color: #7C5CFC;
   font-weight: bold;
 }
 

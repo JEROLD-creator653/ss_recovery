@@ -1,6 +1,6 @@
-# SAIL Solver v2.0
+# SAIL Slayer v2.0
 
-Automatic SAIL (Student Academic Information Login) Solver with dual authentication support (OTP and Password).
+Automatic SAIL (Student Academic Information Login) Slayer with dual authentication support (OTP and Password).
 
 ## 🚀 Features
 

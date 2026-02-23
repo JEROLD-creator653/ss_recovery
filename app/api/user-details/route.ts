@@ -39,8 +39,8 @@ function rsaEncrypt(plaintext: string): string {
  * GET /api/user-details?roll_number=...&otp=...
  *
  * Encrypts the password/OTP with the Edwisely RSA public key and calls
- * auth/v5/getUserDetails to get the full user profile (with section_id,
- * semester_id, token, refresh_token, subjects, etc.)
+ * auth/v5/getUserDetails to get the full user profile.
+ * Then checks the allowlist — if denied, returns the real name + department.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -56,13 +56,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (!isAllowedRegistration(roll_number)) {
-      return NextResponse.json(
-        { success: false, message: 'Access denied' },
-        { status: 403 }
-      );
-    }
-
+    // 1. Call Edwisely API first to get real user details
     const secret = (password || otp)!;
     const encrypted = rsaEncrypt(secret);
     const encoded = encodeURIComponent(encrypted);
@@ -78,11 +72,45 @@ export async function GET(request: NextRequest) {
     const data = await res.json();
     console.log('[user-details]', res.status, data?.status, data?.message);
 
+    // 2. If Edwisely returned valid user data, check allowlist
     if (data.status === 200 && data.data) {
+      const user = data.data;
+
+      // Check allowlist AFTER getting user info
+      if (!isAllowedRegistration(roll_number)) {
+        const studentName = user.name || 'Unknown Student';
+        const department = user.department || user.branch || 'Unknown Department';
+        return NextResponse.json(
+          {
+            success: false,
+            message: 'Access denied',
+            department: department,
+            studentName: studentName,
+            regNo: roll_number,
+          },
+          { status: 403 }
+        );
+      }
+
+      // Allowed — return full user data
       return NextResponse.json({
         success: true,
-        user: data.data,
+        user: user,
       });
+    }
+
+    // 3. Edwisely auth failed (wrong password/OTP) — check allowlist for better error
+    if (!isAllowedRegistration(roll_number)) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Access denied',
+          department: null,
+          studentName: null,
+          regNo: roll_number,
+        },
+        { status: 403 }
+      );
     }
 
     return NextResponse.json(

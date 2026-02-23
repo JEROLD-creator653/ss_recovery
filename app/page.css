@@ -1,7 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+/* Poppins font loaded via next/font in layout.tsx */
 
 body {
-    background: linear-gradient(135deg, #F8F7FC 0%, #EDE9FE 50%, #F5F3FF 100%) !important;
+    background: transparent !important;
     min-height: 100vh;
     margin: 0;
     padding: 0;
@@ -20,49 +20,23 @@ body {
     padding: 40px 20px;
 }
 
-/* Decorative blurred shapes */
-.background > div:first-child {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    pointer-events: none;
-    z-index: 0;
-}
 
-.background .shape {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(80px);
-    opacity: 0.45;
-}
-
-.shape:first-child {
-    background: linear-gradient(135deg, #A78BFA, #C4B5FD);
-    width: 300px;
-    height: 300px;
-    top: -80px;
-    left: -60px;
-}
-
-.shape:last-child {
-    background: linear-gradient(135deg, #DDD6FE, #8B5CF6);
-    width: 250px;
-    height: 250px;
-    bottom: -60px;
-    right: -40px;
-}
 
 form {
     width: 420px;
     max-width: 95vw;
-    background: #ffffff !important;
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
     position: relative;
     z-index: 1;
-    border-radius: 16px;
-    border: 1px solid #E5E7EB !important;
-    box-shadow: 0 4px 24px rgba(124, 92, 252, 0.1), 0 1px 4px rgba(0, 0, 0, 0.05);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    box-shadow:
+        0 8px 32px rgba(124, 92, 252, 0.18),
+        0 2px 12px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.15);
     padding: 48px 40px;
 }
 
@@ -91,9 +65,11 @@ input {
     display: block;
     height: 48px;
     width: 100%;
-    background-color: #F8F7FC !important;
-    border: 1.5px solid #DDD6FE !important;
-    border-radius: 10px;
+    background-color: rgba(248, 247, 252, 0.5) !important;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1.5px solid rgba(221, 214, 254, 0.6) !important;
+    border-radius: 12px;
     padding: 0 14px;
     margin-top: 8px;
     font-size: 14px;
@@ -114,7 +90,7 @@ input::placeholder {
     color: #9CA3AF;
 }
 
-button {
+.login-form button {
     margin-top: 20px;
     width: 100%;
     background: linear-gradient(135deg, #7C5CFC, #8B5CF6) !important;
@@ -131,50 +107,77 @@ button {
     letter-spacing: 0.3px;
 }
 
-button:hover {
+.login-form button:hover {
     background: linear-gradient(135deg, #6D4AE6, #7C3AED) !important;
     box-shadow: 0 4px 16px rgba(124, 92, 252, 0.4);
     transform: translateY(-1px);
 }
 
-button:active {
+.login-form button:active {
     transform: translateY(0);
 }
 
-button:disabled {
+.login-form button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
     transform: none;
 }
 
+/* ─── Decrypted Quote ─── */
+.decrypted-quote {
+    position: relative;
+    z-index: 1;
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    font-style: italic;
+    color: rgba(76, 29, 149, 0.65);
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 0;
+    padding: 0;
+    letter-spacing: 0.3px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+
 /* ─── Footer ─── */
-.site-footer {
+.login-footer {
     position: relative;
     z-index: 1;
     margin-top: 32px;
-    padding: 20px 0 10px;
+    padding: 16px 0 10px;
     text-align: center;
+    background: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    width: 600px;
+    max-width: 95vw;
 }
 
-.footer-tagline {
+.login-footer-tagline {
     font-size: 12px;
     font-style: italic;
-    color: rgba(75, 29, 148, 0.35);
-    margin: 0 0 6px;
+    color: rgba(75, 29, 148, 0.85);
+    margin: 0 0 8px;
     letter-spacing: 0.3px;
+    line-height: 1.4;
     font-family: 'Poppins', sans-serif;
+    white-space: nowrap;
 }
 
-.footer-credit {
+.login-footer-credit {
     font-size: 11px;
-    color: rgba(75, 29, 148, 0.25);
+    color: rgba(75, 29, 148, 0.70);
     margin: 0;
     letter-spacing: 0.2px;
     font-family: 'Poppins', sans-serif;
 }
 
-.footer-credit strong {
-    color: rgba(75, 29, 148, 0.45);
+.login-footer-credit strong {
+    color: #3B0DBF;
     font-weight: 600;
 }
 

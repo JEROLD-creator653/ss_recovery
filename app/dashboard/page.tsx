@@ -2,6 +2,10 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import ReflectiveCard from '../components/ReflectiveCard';
+import GradientText from '../components/GradientText';
+import DecryptedText from '../components/DecryptedText';
+import AnimatedList from '../components/AnimatedList';
 import './dashboard.css';
 
 interface UserData {
@@ -97,11 +101,12 @@ export default function Dashboard() {
   const [resultsReleased, setResultsReleased] = useState<Test[]>([]);
   const [points, setPoints] = useState<PointsData | null>(null);
   const [features, setFeatures] = useState<Feature[]>([]);
-  const [activeTab, setActiveTab] = useState<'recent' | 'upcoming' | 'results'>('recent');
+  const [activeTab, setActiveTab] = useState<'all' | 'ongoing' | 'upcoming' | 'recent'>('all');
 
   // Interactive test state
   const [expandedTestId, setExpandedTestId] = useState<number | null>(null);
   const [showQuestionsTestId, setShowQuestionsTestId] = useState<number | null>(null);
+  const [answersModalTest, setAnswersModalTest] = useState<Test | null>(null);
   const [testQuestions, setTestQuestions] = useState<Record<number, Question[]>>({});
   const [loadingTest, setLoadingTest] = useState<number | null>(null);
   const [submittingTest, setSubmittingTest] = useState<number | null>(null);
@@ -186,6 +191,11 @@ export default function Dashboard() {
     return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
+  const formatDateTime = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) + ' ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+  };
+
   const formatPoints = (n: number) => {
     return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
   };
@@ -244,8 +254,8 @@ export default function Dashboard() {
   // ─── Show Answers ───
   const handleShowAnswers = async (test: Test) => {
     if (testQuestions[test.id]) {
-      // Already loaded — just toggle questions panel visibility (keep card expanded)
-      setShowQuestionsTestId(showQuestionsTestId === test.id ? null : test.id);
+      // Already loaded — open modal
+      setAnswersModalTest(test);
       return;
     }
     setLoadingTest(test.id);
@@ -315,7 +325,7 @@ export default function Dashboard() {
 
       setTestQuestions((prev) => ({ ...prev, [test.id]: questions }));
       setExpandedTestId(test.id);
-      setShowQuestionsTestId(test.id);
+      setAnswersModalTest(test);
     } catch (err) {
       console.error('Error fetching questions:', err);
       setSubmitLog((prev) => ({ ...prev, [test.id]: 'Error loading questions' }));
@@ -464,85 +474,79 @@ export default function Dashboard() {
       <div className="dashboard-container">
         <div className="loading-state">
           <div className="spinner" />
-          <p>Loading dashboard...</p>
+          <p>We Won&apos;t SAIL Anymore...</p>
         </div>
       </div>
     );
   }
 
-  const displayTests = activeTab === 'recent' ? activityWall : activeTab === 'upcoming' ? upcomingTests : resultsReleased;
+  const allTests = [...activityWall, ...upcomingTests, ...resultsReleased].filter(
+    (test, idx, arr) => arr.findIndex((t) => t.id === test.id) === idx
+  );
+  const ongoingTests = allTests.filter((t) => getTestStatus(t) === 'live');
+  const displayTests = activeTab === 'all' ? allTests : activeTab === 'ongoing' ? ongoingTests : activeTab === 'upcoming' ? upcomingTests : activityWall;
 
   return (
     <div className="dashboard-container">
-      {/* Header */}
-      <div className="dashboard-header">
-        <div className="header-left">
-          <h1>SAIL Solver</h1>
-          {userName && <span className="user-greeting">Welcome, {userName.split(' ')[0]}</span>}
-        </div>
+      {/* Top bar */}
+      <div className="dashboard-topbar">
+        <span className="topbar-title"><GradientText colors={['#3B0DBF', '#8B00C4', '#D400FF', '#6A00A8']} animationSpeed={8} showBorder={false}>SAIL Slayer</GradientText></span>
         <button onClick={handleLogout} className="logout-btn">Logout</button>
       </div>
 
       <div className="dashboard-content">
-        {/* Points Summary */}
-        {points && (
-          <div className="points-row">
-            <div className="point-card total">
-              <span className="point-value">{formatPoints(points.total_points)}</span>
-              <span className="point-label">Total Points</span>
-            </div>
-            <div className="point-card academic">
-              <span className="point-value">{formatPoints(points.academic)}</span>
-              <span className="point-label">Academic</span>
-            </div>
-            <div className="point-card streak">
-              <span className="point-value">{formatPoints(points.streak_points)}</span>
-              <span className="point-label">Streak</span>
-            </div>
-            <div className="point-card rewards">
-              <span className="point-value">{formatPoints(points.daily_rewards)}</span>
-              <span className="point-label">Daily Rewards</span>
-            </div>
-          </div>
-        )}
+        {/* Hero: Reflective Card + Subjects */}
+        <div className="hero-section">
+          <ReflectiveCard
+            userName={userData?.name || userName}
+            department={userData?.department_name}
+            rollNumber={userData?.roll_number}
+            college={userData?.college_name}
+            semester={userData?.semester_id}
+            totalPoints={points?.total_points}
+          />
 
-        {/* Subjects */}
-        {subjects.length > 0 && (
-          <div className="section-card">
-            <h2 className="section-title">Subjects (Semester {userData?.semester_id || ''})</h2>
-            <div className="subjects-grid">
-              {subjects.map((s) => (
-                <div key={s.id} className="subject-chip" style={{ borderLeftColor: s.colour_code }}>
-                  <span className="subject-name">{s.name}</span>
-                  {s.faculty_name?.trim() && (
-                    <span className="subject-faculty">{s.faculty_name.trim()}</span>
-                  )}
-                </div>
-              ))}
+          {subjects.length > 0 && (
+            <div className="hero-subjects">
+              <h2 className="section-title"><GradientText colors={['#3B0DBF', '#8B00C4', '#D400FF', '#6A00A8']} animationSpeed={8} showBorder={false}>Subjects</GradientText> <span className="semester-tag">Sem {userData?.semester_id || ''}</span></h2>
+              <AnimatedList
+                items={subjects.map((s) => ({
+                  id: s.id,
+                  name: s.name,
+                  faculty_name: s.faculty_name,
+                }))}
+                showGradients={true}
+                enableArrowNavigation={true}
+                displayScrollbar={false}
+              />
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Tests & Assessments */}
         <div className="section-card">
-          <h2 className="section-title">Tests & Assessments</h2>
+          <h2 className="section-title"><GradientText colors={['#3B0DBF', '#8B00C4', '#D400FF', '#6A00A8']} animationSpeed={8} showBorder={false}>Tests & Assessments</GradientText></h2>
           <div className="tab-bar">
-            <button className={`tab-btn ${activeTab === 'recent' ? 'active' : ''}`} onClick={() => setActiveTab('recent')}>
-              Recent ({activityWall.length})
+            <button className={`tab-btn ${activeTab === 'all' ? 'active' : ''}`} onClick={() => setActiveTab('all')}>
+              All ({allTests.length})
+            </button>
+            <button className={`tab-btn ${activeTab === 'ongoing' ? 'active' : ''}`} onClick={() => setActiveTab('ongoing')}>
+              Ongoing ({ongoingTests.length})
             </button>
             <button className={`tab-btn ${activeTab === 'upcoming' ? 'active' : ''}`} onClick={() => setActiveTab('upcoming')}>
               Upcoming ({upcomingTests.length})
             </button>
-            <button className={`tab-btn ${activeTab === 'results' ? 'active' : ''}`} onClick={() => setActiveTab('results')}>
-              Results ({resultsReleased.length})
+            <button className={`tab-btn ${activeTab === 'recent' ? 'active' : ''}`} onClick={() => setActiveTab('recent')}>
+              Recent ({activityWall.length})
             </button>
           </div>
 
           {displayTests.length === 0 ? (
             <div className="empty-state">
-              <p>{activeTab === 'upcoming' ? 'No upcoming tests right now' : activeTab === 'results' ? 'No results released yet' : 'No recent activity'}</p>
+              <p>{activeTab === 'ongoing' ? 'No ongoing tests right now' : activeTab === 'upcoming' ? 'No upcoming tests' : activeTab === 'all' ? 'No tests found' : 'No recent activity'}</p>
             </div>
           ) : (
+            <div className="tests-scroll-wrapper">
             <div className="tests-list">
               {displayTests.map((test) => {
                 const status = getTestStatus(test);
@@ -576,7 +580,8 @@ export default function Dashboard() {
                         <div className="test-meta">
                           <span className="meta-item subject-tag">{test.subject_name}</span>
                           <span className="meta-item">Duration: {formatTime(test.timelimit)}</span>
-                          <span className="meta-item">Due: {formatDate(test.doe)}</span>
+                          <span className="meta-item">Start: {formatDateTime(test.start_time)}</span>
+                          <span className="meta-item">End: {formatDateTime(test.doe)}</span>
                           {test.questions_count != null && <span className="meta-item">{test.questions_count} Questions</span>}
                           {test.college_account_details?.faculty_name && (
                             <span className="meta-item">By: {test.college_account_details.faculty_name}</span>
@@ -589,10 +594,10 @@ export default function Dashboard() {
                         <div className="test-actions">
                           <button
                             className="action-btn show-answers-btn"
-                            onClick={(e) => { e.stopPropagation(); handleShowAnswers(test); }}
-                            disabled={isLoading || !canShowAnswers}
+                            onClick={(e) => { e.stopPropagation(); handleShowAnswers(test); setAnswersModalTest(test); }}
+                            disabled={isLoading}
                           >
-                            {isLoading ? 'Loading...' : questions ? (isQuestionsVisible ? 'Hide Answers' : 'Show Answers (' + questions.length + ')') : 'Show Answers'}
+                            {isLoading ? 'Loading...' : 'Show Answers'}
                           </button>
 
                           {canSubmit && (
@@ -612,80 +617,86 @@ export default function Dashboard() {
 
                         {/* Status log */}
                         {log && <p className="submit-log">{log}</p>}
-
-                        {/* Questions list */}
-                        {questions && questions.length > 0 && isQuestionsVisible && (
-                          <div className="questions-panel">
-                            {questions.map((q, idx) => (
-                              <div key={q.id} className="question-item">
-                                <div className="question-header">
-                                  <span className="q-number">Q{idx + 1}</span>
-                                  {q.blooms_level && <span className="q-bloom">{q.blooms_level}</span>}
-                                  {q.marks != null && <span className="q-marks">{q.marks} mark{q.marks !== 1 ? 's' : ''}</span>}
-                                  {q.correctly_answered === 1 && <span className="q-correct">Correct</span>}
-                                  {q.correctly_answered === 0 && q.correctly_answered !== undefined && <span className="q-wrong">Wrong</span>}
-                                </div>
-                                <p className="q-text" dangerouslySetInnerHTML={{ __html: q.name }} />
-
-                                <div className="options-list">
-                                  {q.test_questions_options.map((opt) => {
-                                    const isCorrect = opt.is_answer === 1;
-                                    const wasSelected = (opt.selected_option === 1 || (opt as any).selected_option_id != null && (opt as any).selected_option_id === opt.id);
-                                    let cls = 'option-item';
-                                    if (isCorrect) cls += ' correct';
-                                    if (wasSelected && !isCorrect) cls += ' wrong-selected';
-                                    if (wasSelected && isCorrect) cls += ' correct-selected';
-                                    return (
-                                      <div key={opt.id} className={cls}>
-                                        {isCorrect && <span className="opt-indicator correct-ind">&#10003;</span>}
-                                        {wasSelected && !isCorrect && <span className="opt-indicator wrong-ind">&#10007;</span>}
-                                        {!isCorrect && !wasSelected && <span className="opt-indicator neutral-ind">&#9675;</span>}
-                                        <span className="opt-text" dangerouslySetInnerHTML={{ __html: opt.name }} />
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
                       </div>
                     )}
                   </div>
                 );
               })}
             </div>
+            <div className="tests-scroll-fade-bottom" />
+            </div>
           )}
         </div>
-
-        {/* Feature Points Breakdown */}
-        {features.length > 0 && (
-          <div className="section-card">
-            <h2 className="section-title">Points Breakdown</h2>
-            <div className="features-list">
-              {features.filter(f => f.feature_points > 0).map((f) => (
-                <div key={f.feature_id} className="feature-row">
-                  <div className="feature-info">
-                    <span className="feature-name">{f.feature_name}</span>
-                    <span className="feature-pts">{formatPoints(f.feature_points)} pts</span>
-                  </div>
-                  <div className="feature-bar-bg">
-                    <div
-                      className="feature-bar-fill"
-                      style={{ width: `${Math.min(f.percentage_contribution, 100)}%` }}
-                    />
-                  </div>
-                  <span className="feature-pct">{f.percentage_contribution}%</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
+      {/* ─── Answers Modal Overlay ─── */}
+      {answersModalTest && testQuestions[answersModalTest.id] && (
+        <div className="answers-modal-overlay" onClick={() => setAnswersModalTest(null)}>
+          <div className="answers-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="answers-modal-header">
+              <div>
+                <h2 className="answers-modal-title">{answersModalTest.title}</h2>
+                <span className="answers-modal-subject">{answersModalTest.subject_name}</span>
+              </div>
+              <button className="answers-modal-close" onClick={() => setAnswersModalTest(null)}>&times;</button>
+            </div>
+            <div className="answers-modal-body">
+              {testQuestions[answersModalTest.id].map((q, idx) => {
+                const isSubmitted = answersModalTest.submitted === 1;
+                return (
+                  <div key={q.id} className="question-item">
+                    <div className="question-header">
+                      <span className="q-number">Q{idx + 1}</span>
+                      {q.blooms_level && <span className="q-bloom">{q.blooms_level}</span>}
+                      {q.marks != null && <span className="q-marks">{q.marks} mark{q.marks !== 1 ? 's' : ''}</span>}
+                      {isSubmitted && q.correctly_answered === 1 && <span className="q-correct">&#10003; Correct</span>}
+                      {isSubmitted && q.correctly_answered === 0 && q.correctly_answered !== undefined && <span className="q-wrong">&#10007; Wrong</span>}
+                    </div>
+                    <p className="q-text" dangerouslySetInnerHTML={{ __html: q.name }} />
+
+                    <div className="options-list">
+                      {q.test_questions_options.map((opt) => {
+                        const isCorrect = opt.is_answer === 1;
+                        const wasSelected = (opt.selected_option === 1 || ((opt as any).selected_option_id != null && (opt as any).selected_option_id === opt.id));
+                        let cls = 'option-item';
+                        if (isCorrect) cls += ' correct';
+                        if (wasSelected && !isCorrect) cls += ' wrong-selected';
+                        if (wasSelected && isCorrect) cls += ' correct-selected';
+                        return (
+                          <div key={opt.id} className={cls}>
+                            <span className="opt-indicator-wrap">
+                              {isCorrect && <span className="opt-indicator correct-ind">&#10003;</span>}
+                              {wasSelected && !isCorrect && <span className="opt-indicator wrong-ind">&#10007;</span>}
+                              {!isCorrect && !wasSelected && <span className="opt-indicator neutral-ind">&#9675;</span>}
+                            </span>
+                            <span className="opt-text" dangerouslySetInnerHTML={{ __html: opt.name }} />
+                            {isCorrect && <span className="opt-badge correct-badge">Correct Answer</span>}
+                            {wasSelected && !isCorrect && <span className="opt-badge wrong-badge">Your Answer</span>}
+                            {wasSelected && isCorrect && <span className="opt-badge correct-badge">Your Answer &#10003;</span>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       <footer className="site-footer">
-        <p className="footer-tagline">&ldquo;A product of what happens when students are pushed beyond tolerance.&rdquo;</p>
-        <p className="footer-credit">Built with hatred against SAIL &mdash; by <strong>Jerry</strong> &amp; <strong>N71.h5</strong></p>
+        <p className="footer-tagline">
+          &ldquo;<DecryptedText
+            text="A product of what happens when students are pushed beyond tolerance."
+            animateOn="view"
+            speed={40}
+            maxIterations={12}
+            sequential={true}
+            className="decrypted-quote"
+          />&rdquo;
+        </p>
+        <p className="footer-credit">Built with hatred against SAIL &mdash; by <strong><GradientText colors={['#3B0DBF', '#8B00C4', '#D400FF', '#6A00A8']} animationSpeed={6} showBorder={false}>Jerry</GradientText></strong> &amp; <strong><GradientText colors={['#3B0DBF', '#8B00C4', '#D400FF', '#6A00A8']} animationSpeed={6} showBorder={false}>N71.h5</GradientText></strong></p>
       </footer>
     </div>
   );

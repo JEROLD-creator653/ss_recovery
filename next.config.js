@@ -2,11 +2,14 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
+  compress: true,
+  poweredByHeader: false,
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
   images: {
     domains: ['sailstudent.sairamit.edu.in', 'dbchangesstudent.edwisely.com'],
+    formats: ['image/avif', 'image/webp'],
   },
   async headers() {
     return [
@@ -24,6 +27,23 @@ const nextConfig = {
           {
             key: 'Referrer-Policy',
             value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'X-DNS-Prefetch-Control',
+            value: 'on',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()',
+          },
+        ],
+      },
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
           },
         ],
       },

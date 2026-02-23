@@ -24,8 +24,8 @@ body {
 
 body {
   color: var(--foreground);
-  background: var(--background);
-  font-family: 'Poppins', Arial, Helvetica, sans-serif;
+  background: transparent;
+  font-family: var(--font-poppins), 'Poppins', Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

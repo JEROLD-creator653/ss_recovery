@@ -28,7 +28,7 @@ export default function Loading() {
           100% { transform: rotate(360deg); }
         }
       `}</style>
-      <p style={{ color: '#6B7280', fontWeight: 500 }}>Loading...</p>
+      <p style={{ color: '#6B7280', fontWeight: 500 }}>We Won&apos;t SAIL Anymore...</p>
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import './page.css';
 
-async function getOTP(rollNumber: string): Promise<string | number> {
+async function getOTP(rollNumber: string): Promise<{ success: boolean; message?: string; otpSendTo?: string }> {
   try {
     const res = await fetch('/api/otp', {
       method: 'POST',
@@ -13,12 +13,12 @@ async function getOTP(rollNumber: string): Promise<string | number> {
     });
     const data = await res.json();
     if (data.success) {
-      return data.otp_send_to;
+      return { success: true, otpSendTo: data.otp_send_to };
     }
-    return -1;
+    return { success: false, message: data.message };
   } catch (error) {
     console.error('Error getting OTP:', error);
-    return -1;
+    return { success: false, message: 'Failed to send OTP. Please try again.' };
   }
 }
 
@@ -35,10 +35,10 @@ export default function Home() {
       const username = (document.getElementById('username') as HTMLInputElement)?.value;
       if (username) {
         const result = await getOTP(username);
-        if (result !== -1) {
-          alert(`OTP sent to: ${result}`);
+        if (result.success) {
+          alert(`OTP sent to: ${result.otpSendTo || 'registered contact'}`);
         } else {
-          alert('Failed to send OTP. Please try again.');
+          alert(result.message || 'Access denied');
           return;
         }
       }
@@ -118,10 +118,10 @@ export default function Home() {
       <form onSubmit={handleSubmit}>
         <h3>SAIL Login</h3>
 
-        <label htmlFor="username">Username</label>
+        <label htmlFor="username">Registration Number</label>
         <input
           type="text"
-          placeholder="SEC ID"
+          placeholder="Reg No"
           id="username"
           name="user"
           required

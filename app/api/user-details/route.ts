@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { isAllowedRegistration } from '@/app/lib/registrationAllowlist';
 
 const BASE_URL = 'https://dbchangesstudent.edwisely.com';
 const COMMON_HEADERS: Record<string, string> = {
@@ -52,6 +53,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { success: false, message: 'Missing roll_number and password/otp' },
         { status: 400 }
+      );
+    }
+
+    if (!isAllowedRegistration(roll_number)) {
+      return NextResponse.json(
+        { success: false, message: 'Access denied' },
+        { status: 403 }
       );
     }
 

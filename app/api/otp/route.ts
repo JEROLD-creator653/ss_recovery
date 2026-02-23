@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isAllowedRegistration } from '@/app/lib/registrationAllowlist';
 
 const OTP_URL = 'https://dbchangesstudent.edwisely.com/auth/getLoginOtp';
 const COMMON_HEADERS: Record<string, string> = {
@@ -19,6 +20,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, message: 'Missing roll number' },
         { status: 400 }
+      );
+    }
+
+    if (!isAllowedRegistration(roll_number)) {
+      return NextResponse.json(
+        { success: false, message: 'Access denied' },
+        { status: 403 }
       );
     }
 

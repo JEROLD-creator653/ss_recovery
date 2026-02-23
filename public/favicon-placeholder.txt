@@ -1,0 +1,8 @@
+This is a placeholder for the favicon.ico file.
+Replace this file with an actual .ico file for the SAIL Solver application.
+
+You can generate a favicon at:
+- https://favicon.io/
+- https://realfavicongenerator.net/
+
+Recommended size: 16x16, 32x32, or 48x48 pixels

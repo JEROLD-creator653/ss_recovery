@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import "./globals.css";
 
 const Analytics = dynamic(() => import("./components/Analytics"), { ssr: false });
+const SecurityShield = dynamic(() => import("./components/SecurityShield"), { ssr: false });
 
 const inter = Inter({
   variable: "--font-inter",
@@ -53,6 +54,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${poppins.variable}`} suppressHydrationWarning>
         {children}
+        <SecurityShield />
         <Analytics />
       </body>
     </html>

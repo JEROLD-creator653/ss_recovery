@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { isAllowedRegistration } from '@/app/lib/registrationAllowlist';
+import { signToken, COOKIE_NAME, COOKIE_OPTIONS } from '@/app/lib/jwt';
+import { checkRateLimit } from '@/app/lib/rateLimit';
 
 const BASE_URL = 'https://dbchangesstudent.edwisely.com';
 const COMMON_HEADERS: Record<string, string> = {
@@ -38,11 +40,13 @@ function rsaEncrypt(plaintext: string): string {
  * or
  * GET /api/user-details?roll_number=...&otp=...
  *
- * Encrypts the password/OTP with the Edwisely RSA public key and calls
- * auth/v5/getUserDetails to get the full user profile.
- * Then checks the allowlist — if denied, returns the real name + department.
+ * On success: signs a JWT, sets httpOnly session cookie, returns user data.
  */
 export async function GET(request: NextRequest) {
+  // ─── Rate limit: 5 req/min ───
+  const rateLimited = checkRateLimit(request, 'user-details', 5, 60000);
+  if (rateLimited) return rateLimited;
+
   try {
     const { searchParams } = new URL(request.url);
     const roll_number = searchParams.get('roll_number');
@@ -70,7 +74,11 @@ export async function GET(request: NextRequest) {
     });
 
     const data = await res.json();
-    console.log('[user-details]', res.status, data?.status, data?.message);
+
+    // Log with limited detail (no sensitive data)
+    const forwarded = request.headers.get('x-forwarded-for');
+    const ip = forwarded?.split(',')[0]?.trim() || 'unknown';
+    console.log(`[user-details] IP=${ip} roll=${roll_number} status=${data?.status}`);
 
     // 2. If Edwisely returned valid user data, check allowlist
     if (data.status === 200 && data.data) {
@@ -92,14 +100,35 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      // Allowed — return full user data
-      return NextResponse.json({
-        success: true,
-        user: user,
+      // Allowed — sign JWT with all needed data (including edwisely token)
+      const jwtToken = signToken({
+        userId: user.user_id,
+        rollNumber: roll_number,
+        department: user.department || user.branch || '',
+        sectionId: user.section_id,
+        semesterId: user.semester_id,
+        departmentId: user.department_id,
+        collegeUniversityDegreeDepartmentId: user.college_university_degree_department_id,
+        regulationBatchMappingId: user.regulation_batch_mapping_id,
+        edwiselyToken: user.token, // Server-only — never sent to client
       });
+
+      // Build response WITHOUT the edwisely token
+      const safeUser = { ...user };
+      delete safeUser.token;
+      delete safeUser.refresh_token;
+
+      const response = NextResponse.json({
+        success: true,
+        user: safeUser,
+      });
+
+      // Set httpOnly session cookie
+      response.cookies.set(COOKIE_NAME, jwtToken, COOKIE_OPTIONS);
+      return response;
     }
 
-    // 3. Edwisely auth failed (wrong password/OTP) — check allowlist for better error
+    // 3. Edwisely auth failed — check allowlist for better error
     if (!isAllowedRegistration(roll_number)) {
       return NextResponse.json(
         {

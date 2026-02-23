@@ -42,7 +42,7 @@ export default function Home() {
 
   const handleMethodSelection = async (method: 'otp' | 'password') => {
     setIsOtpMode(method === 'otp');
-    
+
     if (method === 'otp') {
       const username = (document.getElementById('username') as HTMLInputElement)?.value;
       if (username) {
@@ -64,7 +64,7 @@ export default function Home() {
         }
       }
     }
-    
+
     setHasSelectedMethod(true);
   };
 
@@ -88,9 +88,9 @@ export default function Home() {
 
       if (detailsData.success && detailsData.user) {
         const user = detailsData.user;
+        // Store only non-sensitive display data — token is in httpOnly cookie
         sessionStorage.setItem('user', JSON.stringify(user));
-        sessionStorage.setItem('token', user.token);
-        sessionStorage.setItem('edwiselyToken', user.token);
+        sessionStorage.setItem('authenticated', 'true');
         setIsLoading(false);
         setAlertMessage({
           title: 'Success',
@@ -100,7 +100,7 @@ export default function Home() {
         setTimeout(() => router.push('/dashboard'), 1500);
       } else {
         setIsLoading(false);
-        
+
         if (detailsData.regNo) {
           setAlertMessage({
             title: ' Access Denied',

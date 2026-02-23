@@ -114,15 +114,15 @@ export default function Dashboard() {
   const [submitLog, setSubmitLog] = useState<Record<number, string>>({});
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const getToken = () => userData?.token || sessionStorage.getItem('edwiselyToken') || sessionStorage.getItem('token') || '';
+  // Token is now in httpOnly cookie — no client access needed
 
-  const fetchDashboard = useCallback(async (ud: UserData, token: string) => {
+  const fetchDashboard = useCallback(async (ud: UserData) => {
     try {
       const res = await fetch('/api/dashboard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify({
-          token: ud.token || token,
           section_id: ud.section_id,
           college_university_degree_department_id: ud.college_university_degree_department_id,
           semester_id: ud.semester_id,
@@ -147,8 +147,8 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    const token = sessionStorage.getItem('token');
-    if (!token) {
+    const authenticated = sessionStorage.getItem('authenticated');
+    if (!authenticated) {
       router.push('/');
       return;
     }
@@ -160,7 +160,7 @@ export default function Dashboard() {
         const ud: UserData = JSON.parse(userStr);
         setUserName(ud.name);
         setUserData(ud);
-        fetchDashboard(ud, token);
+        fetchDashboard(ud);
       } catch {
         setLoading(false);
       }
@@ -174,10 +174,10 @@ export default function Dashboard() {
     return () => { if (countdownRef.current) clearInterval(countdownRef.current); };
   }, []);
 
-  const handleLogout = () => {
-    sessionStorage.removeItem('token');
+  const handleLogout = async () => {
+    await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' });
     sessionStorage.removeItem('user');
-    sessionStorage.removeItem('edwiselyToken');
+    sessionStorage.removeItem('authenticated');
     router.push('/');
   };
 
@@ -218,12 +218,13 @@ export default function Dashboard() {
   };
 
   // ─── Helper: fetch correct answers from all SAIL endpoints ───
-  const fetchCorrectAnswers = async (testId: number, token: string): Promise<Record<number, number[]>> => {
+  const fetchCorrectAnswers = async (testId: number): Promise<Record<number, number[]>> => {
     try {
       const res = await fetch('/api/test-actions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'fetch-correct', token, test_id: testId }),
+        credentials: 'same-origin',
+        body: JSON.stringify({ action: 'fetch-correct', test_id: testId }),
       });
       const data = await res.json();
       if (data.success && data.answerMap) {
@@ -260,12 +261,11 @@ export default function Dashboard() {
     }
     setLoadingTest(test.id);
     setSubmitLog((prev) => ({ ...prev, [test.id]: 'Fetching correct answers from SAIL...' }));
-    const token = getToken();
     const status = getTestStatus(test);
 
     try {
       // Step 1: Try to fetch correct answers from all SAIL answer endpoints
-      const answerMap = await fetchCorrectAnswers(test.id, token);
+      const answerMap = await fetchCorrectAnswers(test.id);
       const hasAnswers = Object.keys(answerMap).length > 0;
 
       // Step 2: Get the questions themselves
@@ -275,7 +275,8 @@ export default function Dashboard() {
         const res = await fetch('/api/test-actions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'answers', token, test_id: test.id }),
+          credentials: 'same-origin',
+          body: JSON.stringify({ action: 'answers', test_id: test.id }),
         });
         const data = await res.json();
         if (data.success && Array.isArray(data.data)) {
@@ -288,7 +289,8 @@ export default function Dashboard() {
         const res = await fetch('/api/test-actions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'fetch', token, test_id: test.id }),
+          credentials: 'same-origin',
+          body: JSON.stringify({ action: 'fetch', test_id: test.id }),
         });
         const data = await res.json();
         if (data.success && data.questions) {
@@ -336,7 +338,6 @@ export default function Dashboard() {
   // ─── Auto-submit test with CORRECT answers ───
   const handleAutoSubmit = async (test: Test) => {
     if (!userData) return;
-    const token = getToken();
     const status = getTestStatus(test);
 
     if (status !== 'live') {
@@ -353,9 +354,10 @@ export default function Dashboard() {
         fetch('/api/test-actions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'fetch', token, test_id: test.id }),
+          credentials: 'same-origin',
+          body: JSON.stringify({ action: 'fetch', test_id: test.id }),
         }).then((r) => r.json()),
-        fetchCorrectAnswers(test.id, token),
+        fetchCorrectAnswers(test.id),
       ]);
 
       if (!qRes.success || !qRes.questions) {
@@ -434,13 +436,11 @@ export default function Dashboard() {
       const sRes = await fetch('/api/test-actions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify({
           action: 'submit',
-          token,
           test_id: test.id,
           subject_id: subjectId,
-          user_id: userData.user_id,
-          roll_number: userData.roll_number,
           question_answers,
         }),
       });
@@ -547,83 +547,83 @@ export default function Dashboard() {
             </div>
           ) : (
             <div className="tests-scroll-wrapper">
-            <div className="tests-list">
-              {displayTests.map((test) => {
-                const status = getTestStatus(test);
-                const badge = badgeInfo[status];
-                const isExpanded = expandedTestId === test.id;
-                const questions = testQuestions[test.id];
-                const isLoading = loadingTest === test.id;
-                const isSubmitting = submittingTest === test.id;
-                const log = submitLog[test.id];
-                const canSubmit = status === 'live';
-                const canShowAnswers = true;
-                const isQuestionsVisible = showQuestionsTestId === test.id;
+              <div className="tests-list">
+                {displayTests.map((test) => {
+                  const status = getTestStatus(test);
+                  const badge = badgeInfo[status];
+                  const isExpanded = expandedTestId === test.id;
+                  const questions = testQuestions[test.id];
+                  const isLoading = loadingTest === test.id;
+                  const isSubmitting = submittingTest === test.id;
+                  const log = submitLog[test.id];
+                  const canSubmit = status === 'live';
+                  const canShowAnswers = true;
+                  const isQuestionsVisible = showQuestionsTestId === test.id;
 
-                return (
-                  <div key={test.id} className={`test-card ${isExpanded ? 'expanded' : ''}`}>
-                    {/* Clickable header */}
-                    <div
-                      className="test-header clickable"
-                      onClick={() => setExpandedTestId(isExpanded ? null : test.id)}
-                    >
-                      <div className="test-header-left">
-                        <span className={`expand-arrow ${isExpanded ? 'open' : ''}`}>&#9654;</span>
-                        <h3 className="test-title">{test.title}</h3>
-                      </div>
-                      <span className={`status-badge ${badge.cls}`}>{badge.text}</span>
-                    </div>
-
-                    {/* Expanded content */}
-                    {isExpanded && (
-                      <div className="test-expanded">
-                        <div className="test-meta">
-                          <span className="meta-item subject-tag">{test.subject_name}</span>
-                          <span className="meta-item">Duration: {formatTime(test.timelimit)}</span>
-                          <span className="meta-item">Start: {formatDateTime(test.start_time)}</span>
-                          <span className="meta-item">End: {formatDateTime(test.doe)}</span>
-                          {test.questions_count != null && <span className="meta-item">{test.questions_count} Questions</span>}
-                          {test.college_account_details?.faculty_name && (
-                            <span className="meta-item">By: {test.college_account_details.faculty_name}</span>
-                          )}
+                  return (
+                    <div key={test.id} className={`test-card ${isExpanded ? 'expanded' : ''}`}>
+                      {/* Clickable header */}
+                      <div
+                        className="test-header clickable"
+                        onClick={() => setExpandedTestId(isExpanded ? null : test.id)}
+                      >
+                        <div className="test-header-left">
+                          <span className={`expand-arrow ${isExpanded ? 'open' : ''}`}>&#9654;</span>
+                          <h3 className="test-title">{test.title}</h3>
                         </div>
+                        <span className={`status-badge ${badge.cls}`}>{badge.text}</span>
+                      </div>
 
-                        {test.description && <p className="test-desc">{test.description}</p>}
+                      {/* Expanded content */}
+                      {isExpanded && (
+                        <div className="test-expanded">
+                          <div className="test-meta">
+                            <span className="meta-item subject-tag">{test.subject_name}</span>
+                            <span className="meta-item">Duration: {formatTime(test.timelimit)}</span>
+                            <span className="meta-item">Start: {formatDateTime(test.start_time)}</span>
+                            <span className="meta-item">End: {formatDateTime(test.doe)}</span>
+                            {test.questions_count != null && <span className="meta-item">{test.questions_count} Questions</span>}
+                            {test.college_account_details?.faculty_name && (
+                              <span className="meta-item">By: {test.college_account_details.faculty_name}</span>
+                            )}
+                          </div>
 
-                        {/* Action buttons */}
-                        <div className="test-actions">
-                          <button
-                            className="action-btn show-answers-btn"
-                            onClick={(e) => { e.stopPropagation(); handleShowAnswers(test); setAnswersModalTest(test); }}
-                            disabled={isLoading}
-                          >
-                            {isLoading ? 'Loading...' : 'Show Answers'}
-                          </button>
+                          {test.description && <p className="test-desc">{test.description}</p>}
 
-                          {canSubmit && (
+                          {/* Action buttons */}
+                          <div className="test-actions">
                             <button
-                              className="action-btn submit-btn"
-                              onClick={(e) => { e.stopPropagation(); handleAutoSubmit(test); }}
-                              disabled={isSubmitting}
+                              className="action-btn show-answers-btn"
+                              onClick={(e) => { e.stopPropagation(); handleShowAnswers(test); setAnswersModalTest(test); }}
+                              disabled={isLoading}
                             >
-                              {isSubmitting
-                                ? submitCountdown
-                                  ? `Submitting in ${submitCountdown}s`
-                                  : 'Submitting...'
-                                : 'Auto Submit Test'}
+                              {isLoading ? 'Loading...' : 'Show Answers'}
                             </button>
-                          )}
-                        </div>
 
-                        {/* Status log */}
-                        {log && <p className="submit-log">{log}</p>}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-            <div className="tests-scroll-fade-bottom" />
+                            {canSubmit && (
+                              <button
+                                className="action-btn submit-btn"
+                                onClick={(e) => { e.stopPropagation(); handleAutoSubmit(test); }}
+                                disabled={isSubmitting}
+                              >
+                                {isSubmitting
+                                  ? submitCountdown
+                                    ? `Submitting in ${submitCountdown}s`
+                                    : 'Submitting...'
+                                  : 'Auto Submit Test'}
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Status log */}
+                          {log && <p className="submit-log">{log}</p>}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="tests-scroll-fade-bottom" />
             </div>
           )}
         </div>

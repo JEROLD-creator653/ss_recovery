@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { checkRateLimit } from '@/app/lib/rateLimit';
 
 /**
  * Authentication proxy.
@@ -16,6 +17,10 @@ import { NextRequest, NextResponse } from 'next/server';
 const UPSTREAM_URL = 'https://sailv2.vercel.app/authenticate';
 
 export async function POST(request: NextRequest) {
+  // ─── Rate limit: 5 req/min ───
+  const rateLimited = checkRateLimit(request, 'authenticate', 5, 60000);
+  if (rateLimited) return rateLimited;
+
   try {
     const body = await request.json();
     const { user, password, useOtp } = body;

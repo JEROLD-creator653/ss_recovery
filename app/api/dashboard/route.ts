@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getSession, unauthorized } from '@/app/lib/authMiddleware';
 
 const BASE_URL = 'https://dbchangesstudent.edwisely.com';
 const AWS_DASHBOARD_URL =
@@ -16,19 +17,18 @@ function getHeaders(token: string): Record<string, string> {
 
 /**
  * POST /api/dashboard
- * Body: { token, section_id, college_university_degree_department_id, semester_id, department_id, regulation_batch_mapping_id }
+ * Body: { section_id, college_university_degree_department_id, semester_id, department_id, regulation_batch_mapping_id }
  *
- * Returns aggregated dashboard data:
- * - profile
- * - points summary
- * - feature‐level points
- * - web dashboard (subjects, activity_wall, upcoming_tests, results_released, QOD)
+ * Token is extracted from the JWT session cookie — NOT from request body.
  */
 export async function POST(request: NextRequest) {
+  // ─── Auth check ───
+  const session = getSession(request);
+  if (!session) return unauthorized();
+
   try {
     const body = await request.json();
     const {
-      token,
       section_id,
       college_university_degree_department_id,
       semester_id,
@@ -36,14 +36,8 @@ export async function POST(request: NextRequest) {
       regulation_batch_mapping_id,
     } = body;
 
-    if (!token) {
-      return NextResponse.json(
-        { success: false, message: 'Missing token' },
-        { status: 400 }
-      );
-    }
-
-    const headers = getHeaders(token);
+    // Use Edwisely token from JWT — never trust client-provided token
+    const headers = getHeaders(session.edwiselyToken);
 
     // Fire all independent requests in parallel
     const promises: Promise<any>[] = [

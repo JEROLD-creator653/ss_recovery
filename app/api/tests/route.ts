@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getSession, unauthorized } from '@/app/lib/authMiddleware';
 
 const BASE_URL = 'https://dbchangesstudent.edwisely.com';
 
@@ -15,23 +16,20 @@ function getHeaders(token: string): Record<string, string> {
 
 /**
  * POST /api/tests
- * Body: { token, from_date?, delta_days?, section_id? }
+ * Body: { from_date?, delta_days?, section_id? }
  *
- * Fetches the list of assessments/tests assigned to the student.
+ * Token extracted from JWT session cookie.
  */
 export async function POST(request: NextRequest) {
+  // ─── Auth check ───
+  const session = getSession(request);
+  if (!session) return unauthorized();
+
   try {
     const body = await request.json();
-    const { token, from_date, delta_days, section_id } = body;
+    const { from_date, delta_days, section_id } = body;
 
-    if (!token) {
-      return NextResponse.json(
-        { success: false, message: 'Missing token' },
-        { status: 400 }
-      );
-    }
-
-    const headers = getHeaders(token);
+    const headers = getHeaders(session.edwiselyToken);
 
     // Try multiple endpoints in parallel to maximize data
     const promises: Promise<{ key: string; data: any }>[] = [];

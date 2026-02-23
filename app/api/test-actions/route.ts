@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getSession, unauthorized } from '@/app/lib/authMiddleware';
 
 const QUESTIONNAIRE_URL =
   'https://qsdsbm4079.execute-api.ap-south-1.amazonaws.com/prod/questionnaire';
@@ -18,24 +19,27 @@ function getHeaders(token: string): Record<string, string> {
 
 /**
  * POST /api/test-actions
- * Body: { action, token, test_id, subject_id?, user_id?, roll_number?, question_answers? }
+ * Body: { action, test_id, subject_id?, user_id?, roll_number?, question_answers? }
  *
- * action = "fetch"     -> GET questionnaire (questions + options)
- * action = "answers"   -> GET getTestQuestions (with is_answer flags, only for released results)
- * action = "submit"    -> POST testsubmission
+ * Token extracted from JWT session cookie (never from request body).
  */
 export async function POST(request: NextRequest) {
+  // ─── Auth check ───
+  const session = getSession(request);
+  if (!session) return unauthorized();
+
   try {
     const body = await request.json();
-    const { action, token, test_id } = body;
+    const { action, test_id } = body;
 
-    if (!token || !test_id) {
+    if (!test_id) {
       return NextResponse.json(
-        { success: false, message: 'Missing token or test_id' },
+        { success: false, message: 'Missing test_id' },
         { status: 400 }
       );
     }
 
+    const token = session.edwiselyToken;
     const headers = getHeaders(token);
 
     // ─── Fetch questions (active test) ───
@@ -86,7 +90,6 @@ export async function POST(request: NextRequest) {
 
     // ─── Fetch correct answers from ALL possible endpoints ───
     if (action === 'fetch-correct') {
-      // Try multiple endpoints in parallel to find one that has is_answer data
       const endpoints = [
         {
           key: 'getTestQuestions',
@@ -114,7 +117,6 @@ export async function POST(request: NextRequest) {
         })
       );
 
-      // Build an answer map: question_id -> array of correct option ids
       const answerMap: Record<number, number[]> = {};
       const questionsWithAnswers: any[] = [];
       let sourceEndpoint = '';
@@ -123,7 +125,6 @@ export async function POST(request: NextRequest) {
         if (result.status !== 'fulfilled') continue;
         const { key, data } = result.value;
 
-        // Each endpoint returns data differently
         let questions: any[] = [];
         if (data.status === 200 || data.statusCode === 200) {
           if (Array.isArray(data.data)) {
@@ -137,7 +138,6 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        // Check if this endpoint has is_answer flags
         for (const q of questions) {
           const options =
             q.test_questions_options ||
@@ -169,11 +169,14 @@ export async function POST(request: NextRequest) {
 
     // ─── Submit test ───
     if (action === 'submit') {
-      const { subject_id, user_id, roll_number, question_answers } = body;
+      const { subject_id, question_answers } = body;
+      // Use user_id and roll_number from JWT session — not client
+      const user_id = session.userId;
+      const roll_number = session.rollNumber;
 
-      if (!user_id || !question_answers) {
+      if (!question_answers) {
         return NextResponse.json(
-          { success: false, message: 'Missing submission fields' },
+          { success: false, message: 'Missing question_answers' },
           { status: 400 }
         );
       }
@@ -188,17 +191,15 @@ export async function POST(request: NextRequest) {
           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
       };
 
-      // V1 payload (legacy endpoint — includes user_id, roll_number, subject_id)
       const v1Payload = {
         questionnaire_id: test_id,
         subject_id: subject_id || 0,
         question_answers,
-        test_submission_type: 2, // V1 uses numeric
+        test_submission_type: 2,
         user_id,
         roll_number,
       };
 
-      // V2 payload (new endpoint — leaner, auth via token)
       const v2Payload = {
         questionnaire_id: test_id,
         question_answers,
@@ -208,7 +209,6 @@ export async function POST(request: NextRequest) {
         reason: 'Student submitted the test',
       };
 
-      // Try endpoints with their matching payload formats
       const attempts = [
         { url: SUBMISSION_URL, payload: v1Payload, label: 'v1-legacy' },
         { url: 'https://q6wjgn02f4.execute-api.ap-south-1.amazonaws.com/prod/testsubmission', payload: v2Payload, label: 'v2-new' },
@@ -220,7 +220,6 @@ export async function POST(request: NextRequest) {
 
       for (const attempt of attempts) {
         try {
-          console.log(`[test-actions] trying ${attempt.label}: ${attempt.url}`);
           const res = await fetch(attempt.url, {
             method: 'POST',
             headers: submitHeaders,
@@ -228,7 +227,6 @@ export async function POST(request: NextRequest) {
           });
 
           const rawText = await res.text();
-          console.log(`[test-actions] ${attempt.label} raw response (${res.status}):`, rawText.substring(0, 500));
           debugLogs.push(`${attempt.label} [HTTP ${res.status}]: ${rawText.substring(0, 200)}`);
 
           let data: any;
@@ -239,7 +237,6 @@ export async function POST(request: NextRequest) {
             continue;
           }
 
-          // Check for success in various response formats
           const respStatus = data.status || data.statusCode || res.status;
           const respMsg = data.message || data.msg || data.error || '';
 
@@ -251,7 +248,6 @@ export async function POST(request: NextRequest) {
             });
           }
 
-          // 409 = already submitted
           if (respStatus === 409) {
             return NextResponse.json({
               success: true,
@@ -264,7 +260,6 @@ export async function POST(request: NextRequest) {
           const msg = err?.message || 'Network error';
           lastError = `${attempt.label}: ${msg}`;
           debugLogs.push(`${attempt.label}: EXCEPTION - ${msg}`);
-          console.error(`[test-actions] ${attempt.label} error:`, msg);
         }
       }
 

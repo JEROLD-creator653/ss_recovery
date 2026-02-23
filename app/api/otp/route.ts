@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isAllowedRegistration } from '@/app/lib/registrationAllowlist';
+import { checkRateLimit } from '@/app/lib/rateLimit';
 
 const OTP_URL = 'https://dbchangesstudent.edwisely.com/auth/getLoginOtp';
 const COMMON_HEADERS: Record<string, string> = {
@@ -12,6 +13,10 @@ const COMMON_HEADERS: Record<string, string> = {
 };
 
 export async function POST(request: NextRequest) {
+  // ─── Rate limit: 3 req/min ───
+  const rateLimited = checkRateLimit(request, 'otp', 3, 60000);
+  if (rateLimited) return rateLimited;
+
   try {
     const body = await request.json();
     const { roll_number } = body;
